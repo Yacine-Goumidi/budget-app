@@ -1,0 +1,201 @@
+/* ----- Variables ----- */
+:root {
+  --primary-color: #646cff;
+  --primary-hover: #535bf2;
+  --bg-color-light: #f5f6fa;
+  --bg-color-dark: #1a1a1a;
+  --text-color-light: #213547;
+  --text-color-dark: #ffffff;
+  --button-radius: 8px;
+  --input-radius: 6px;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ----- Body ----- */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  background-color: var(--bg-color-light);
+  color: var(--text-color-light);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ----- Dashboard Container ----- */
+.dashboard-container {
+  width: 100%;
+  max-width: 700px;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+}
+
+/* ----- Headings ----- */
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.8em;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+/* ----- Form Styles ----- */
+input, select {
+  padding: 0.6em 1em;
+  border-radius: var(--input-radius);
+  border: 1px solid #ccc;
+  font-family: var(--font-family);
+  font-size: 1em;
+  margin-bottom: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(100,108,255,0.3);
+}
+
+/* ----- Buttons ----- */
+button {
+  border-radius: var(--button-radius);
+  border: 1px solid transparent;
+  padding: 0.6em 1.5em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: var(--font-family);
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.25s, transform 0.15s, box-shadow 0.2s;
+}
+
+button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ----- Product List ----- */
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.product-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+/* ----- Product Badges ----- */
+.product-type {
+  font-size: 0.85em;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.product-type.Alimentation { background-color: #ff6b6b; }
+.product-type.Vêtements { background-color: #6bc1ff; }
+.product-type.Sport { background-color: #6bff8d; }
+.product-type.Maison { background-color: #ffd36b; }
+
+/* ----- Total ----- */
+.total {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-top: 20px;
+}
+
+.total-ok { color: green; }
+.total-exceeded { color: red; }
+
+/* ----- PDF Button ----- */
+.pdf-button {
+  margin-top: 20px;
+  padding: 10px 16px;
+  border-radius: var(--button-radius);
+  font-weight: 500;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.pdf-button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+
+  input, select, button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .product-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ----- Dark Mode ----- */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+  }
+
+  .dashboard-container {
+    background-color: #222222;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+  }
+
+  input, select {
+    background-color: #333333;
+    color: #fff;
+    border: 1px solid #555;
+  }
+
+  .product-item {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+  }
+
+  button.pdf-button {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+}
