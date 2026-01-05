@@ -1,45 +1,41 @@
-//référence de positionement:frontend/src/utils/pdf.js
+// frontend/src/utils/pdf.js
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export function generatePDF(products, total, budget) {
+export function generatePDF(products, total, budget, listName = '') {
   const doc = new jsPDF();
 
-  /* =====================
-     HEADER
-  ===================== */
+  /* ===================== HEADER ===================== */
   doc.setFillColor(240, 240, 240);
   doc.rect(0, 0, 210, 30, 'F');
 
-  doc.setFontSize(20);
+  doc.setFontSize(18);
   doc.setTextColor(40, 40, 40);
-  doc.text('Liste de courses', 105, 18, { align: 'center' });
+  doc.text(listName || 'Liste de courses', 105, 18, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text(`Date : ${new Date().toLocaleString()}`, 105, 25, { align: 'center' });
 
-  /* =====================
-     TABLE
-  ===================== */
+  /* ===================== TABLE ===================== */
   const tableColumn = ['Nom', 'Type', 'Prix', 'Qté', 'Réduction', 'Total'];
   const tableRows = [];
 
   products.forEach(product => {
-    const productTotal =
-      product.reductionType === 'pourcentage'
-        ? product.price * product.quantity * (1 - product.reduction / 100)
-        : product.reductionType === 'fixe'
-        ? product.price * product.quantity - product.reduction
-        : product.price * product.quantity;
+    const baseTotal = product.price * product.quantity;
+    const reduction =
+      product.discountType === 'percentage'
+        ? baseTotal * (product.discountValue / 100)
+        : product.discountValue || 0;
+    const productTotal = baseTotal - reduction;
 
     tableRows.push([
       product.name,
-      product.type,
+      product.category,
       `${product.price.toFixed(2)} €`,
       product.quantity,
-      product.reduction
-        ? `${product.reduction}${product.reductionType === 'pourcentage' ? '%' : ' €'}`
+      product.discountValue
+        ? `${product.discountValue}${product.discountType === 'percentage' ? '%' : ' €'}`
         : '-',
       `${productTotal.toFixed(2)} €`,
     ]);
@@ -67,15 +63,11 @@ export function generatePDF(products, total, budget) {
     },
   });
 
-  /* =====================
-     SUMMARY
-  ===================== */
+  /* ===================== SUMMARY ===================== */
   const finalY = doc.lastAutoTable.finalY + 15;
-
   doc.setFontSize(12);
   doc.setTextColor(40, 40, 40);
   doc.text(`Total général : ${total.toFixed(2)} €`, 14, finalY);
-
   doc.text(`Budget : ${budget.toFixed(2)} €`, 14, finalY + 8);
 
   if (total > budget) {
@@ -86,12 +78,10 @@ export function generatePDF(products, total, budget) {
     doc.text('Statut : Budget OK', 14, finalY + 16);
   }
 
-  /* =====================
-     FOOTER
-  ===================== */
+  /* ===================== FOOTER ===================== */
   doc.setFontSize(9);
   doc.setTextColor(150);
   doc.text('Généré par Budget App', 105, 290, { align: 'center' });
 
-  doc.save('liste_de_courses.pdf');
+  doc.save(`${listName || 'liste_de_courses'}.pdf`);
 }

@@ -1,98 +1,115 @@
-import React, { useContext, useState } from 'react';
-import { BudgetContext } from '../context/BudgetContext';
+import React, { useEffect, useState } from 'react';
+import { loadLists, saveLists } from '../utils/storage';
+import { generatePDF } from '../utils/pdf';
+import { useNavigate } from 'react-router-dom';
 
 export default function History() {
-  const { lists, removeList, loadList } = useContext(BudgetContext);
-  const [sortField, setSortField] = useState('date'); // date, budget, total
-  const [sortOrder, setSortOrder] = useState('desc'); // asc ou desc
+  const [lists, setLists] = useState([]);
+  const navigate = useNavigate();
 
-  // Fonction pour trier les listes
-  const sortedLists = [...lists].sort((a, b) => {
-    let valA = a[sortField];
-    let valB = b[sortField];
+  /* ===================== LOAD LISTS ===================== */
+  useEffect(() => {
+    setLists(loadLists());
+  }, []);
 
-    if (sortField === 'date') {
-      valA = new Date(valA);
-      valB = new Date(valB);
-    }
+  /* ===================== SUPPRIMER UNE LISTE ===================== */
+  const deleteList = (id) => {
+    const updatedLists = lists.filter(list => list.id !== id);
+    setLists(updatedLists);
+    saveLists(updatedLists);
+  };
 
-    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
+  /* ===================== SUPPRIMER TOUT L’HISTORIQUE ===================== */
+  const deleteAllLists = () => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer tout l’historique ?')) {
+      setLists([]);
+      saveLists([]);
     }
   };
 
   return (
-    <div className="history-page p-4">
-      <h1 className="text-2xl font-bold mb-4">Historique des listes</h1>
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Historique des listes</h1>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate('/')}
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+          >
+            Retour au Dashboard
+          </button>
+
+          {lists.length > 0 && (
+            <button
+              onClick={deleteAllLists}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Supprimer tout l’historique
+            </button>
+          )}
+        </div>
+      </div>
+
       {lists.length === 0 ? (
-        <p>Aucune liste sauvegardée pour l'instant.</p>
+        <p>Aucune liste sauvegardée</p>
       ) : (
-        <table className="min-w-full border">
-          <thead>
-            <tr>
-              <th
-                className="cursor-pointer p-2 border"
-                onClick={() => handleSort('name')}
-              >
-                Nom
-              </th>
-              <th
-                className="cursor-pointer p-2 border"
-                onClick={() => handleSort('date')}
-              >
-                Date
-              </th>
-              <th
-                className="cursor-pointer p-2 border"
-                onClick={() => handleSort('budget')}
-              >
-                Budget
-              </th>
-              <th
-                className="cursor-pointer p-2 border"
-                onClick={() => handleSort('total')}
-              >
-                Total dépensé
-              </th>
-              <th className="p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedLists.map((list) => (
-              <tr key={list.id} className="text-center">
-                <td className="p-2 border">{list.name}</td>
-                <td className="p-2 border">{new Date(list.date).toLocaleString()}</td>
-                <td className="p-2 border">{list.budget} €</td>
-                <td className="p-2 border">{list.total} €</td>
-                <td className="p-2 border space-x-2">
+        <div className="space-y-4">
+          {lists.map((list) => (
+            <div
+              key={list.id}
+              className="border rounded p-4 shadow-sm bg-white"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <h2 className="font-semibold">{list.name}</h2>
+                  <p className="text-sm text-gray-500">
+                    {new Date(list.date).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
                   <button
-                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-                    onClick={() => loadList(list.id)}
+                    onClick={() =>
+                      generatePDF(
+                        list.products,
+                        list.totalSpent,
+                        list.budget,
+                        list.name
+                      )
+                    }
+                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                   >
-                    Charger
+                    Export PDF
                   </button>
+
                   <button
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                    onClick={() => {
-                      if (window.confirm('Supprimer cette liste ?')) removeList(list.id);
-                    }}
+                    onClick={() => deleteList(list.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                   >
                     Supprimer
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              </div>
+
+              <div className="text-sm">
+                <p>Budget : {list.budget.toFixed(2)} €</p>
+                <p>Total dépensé : {list.totalSpent.toFixed(2)} €</p>
+                <p
+                  className={`font-semibold ${
+                    list.totalSpent > list.budget
+                      ? 'text-red-600'
+                      : 'text-green-600'
+                  }`}
+                >
+                  {list.totalSpent > list.budget
+                    ? 'Budget dépassé'
+                    : 'Budget respecté'}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
