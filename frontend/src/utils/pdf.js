@@ -1,4 +1,4 @@
-// frontend/src/utils/pdf.js
+//référence de positionement:frontend/src/utils/pdf.js
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
