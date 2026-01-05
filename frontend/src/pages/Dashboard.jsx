@@ -1,192 +1,136 @@
 import React, { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BudgetContext } from '../context/BudgetContext';
-import ProductItem from '../components/ProductItem';
-import { generatePDF } from '../utils/pdf';
 
-function Dashboard() {
+export default function Dashboard() {
+  const navigate = useNavigate();
   const { budget, setBudget, products, setProducts } = useContext(BudgetContext);
 
-  // Form state
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [type, setType] = useState('Alimentation');
-  const [reduction, setReduction] = useState('');
-  const [reductionType, setReductionType] = useState('pourcentage');
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    price: '',
+    quantity: 1,
+    category: '',
+  });
 
-  // Filtre catégorie
-  const [filter, setFilter] = useState('Tous');
+  // Fonction pour ajouter un produit à la liste
+  const addProduct = () => {
+    if (!newProduct.name || !newProduct.price) return;
 
-  // Ajouter produit
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (!name || !price || !quantity) return;
-
-    const newProduct = {
+    const productToAdd = {
+      ...newProduct,
+      price: parseFloat(newProduct.price),
+      quantity: parseInt(newProduct.quantity),
       id: Date.now(),
-      name,
-      price: parseFloat(price),
-      quantity: parseInt(quantity),
-      type,
-      reduction: reduction ? parseFloat(reduction) : 0,
-      reductionType,
     };
 
-    setProducts([...products, newProduct]);
-
-    // Reset form
-    setName('');
-    setPrice('');
-    setQuantity('');
-    setType('Alimentation');
-    setReduction('');
-    setReductionType('pourcentage');
+    setProducts([...products, productToAdd]);
+    setNewProduct({ name: '', price: '', quantity: 1, category: '' });
   };
 
-  // Supprimer produit
-  const handleDeleteProduct = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
-  };
-
-  // Liste filtrée
-  const filteredProducts =
-    filter === 'Tous'
-      ? products
-      : products.filter((p) => p.type === filter);
-
-  // Total calculé
-  const total = filteredProducts.reduce((acc, product) => {
-    const productTotal =
-      product.reductionType === 'pourcentage'
-        ? product.price * product.quantity * (1 - product.reduction / 100)
-        : product.reductionType === 'fixe'
-        ? product.price * product.quantity - product.reduction
-        : product.price * product.quantity;
-    return acc + productTotal;
-  }, 0);
+  // Calcul du total des dépenses
+  const totalSpent = products.reduce(
+    (acc, product) => acc + product.price * product.quantity,
+    0
+  );
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <h1>Ta liste de course !</h1>
+    <div className="dashboard-page p-4">
+      <h1 className="text-2xl font-bold mb-4">Tableau de bord</h1>
 
-      {/* Budget */}
-      <div style={{ marginBottom: '20px' }}>
-        <label>Budget : </label>
+      {/* Bouton Historique */}
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4"
+        onClick={() => navigate('/history')}
+      >
+        Historique
+      </button>
+
+      {/* Section Budget */}
+      <div className="mb-6">
+        <label className="block font-semibold mb-2">Budget :</label>
         <input
           type="number"
           value={budget}
           onChange={(e) => setBudget(parseFloat(e.target.value))}
+          className="border px-2 py-1 rounded w-32"
         />
+        <p className="mt-2">
+          Total dépensé : {totalSpent} / Budget : {budget}
+        </p>
       </div>
 
       {/* Formulaire ajout produit */}
-      <form onSubmit={handleAddProduct} style={{ marginBottom: '20px' }}>
+      <div className="mb-6">
+        <h2 className="font-semibold mb-2">Ajouter un produit</h2>
         <input
           type="text"
           placeholder="Nom du produit"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ marginRight: '5px' }}
+          value={newProduct.name}
+          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+          className="border px-2 py-1 rounded mr-2"
         />
-
         <input
           type="number"
           placeholder="Prix"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          style={{ marginRight: '5px' }}
+          value={newProduct.price}
+          onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+          className="border px-2 py-1 rounded mr-2 w-20"
         />
-
         <input
           type="number"
           placeholder="Quantité"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          style={{ marginRight: '5px' }}
+          value={newProduct.quantity}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, quantity: e.target.value })
+          }
+          className="border px-2 py-1 rounded mr-2 w-20"
         />
-
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          style={{ marginRight: '5px' }}
+        <input
+          type="text"
+          placeholder="Catégorie"
+          value={newProduct.category}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, category: e.target.value })
+          }
+          className="border px-2 py-1 rounded mr-2 w-32"
+        />
+        <button
+          onClick={addProduct}
+          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
         >
-          <option>Alimentation</option>
-          <option>Vêtements</option>
-          <option>Sport</option>
-          <option>Maison</option>
-        </select>
-
-        {/* Réduction alignée correctement */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            marginRight: '5px',
-          }}
-        >
-          <input
-            type="number"
-            placeholder="Réduction"
-            value={reduction}
-            onChange={(e) => setReduction(e.target.value)}
-            style={{ width: '100px' }}
-          />
-          <select
-            value={reductionType}
-            onChange={(e) => setReductionType(e.target.value)}
-            style={{
-              width: '50px',
-              textAlign: 'center',
-              padding: '6px',
-            }}
-          >
-            <option value="pourcentage">%</option>
-            <option value="fixe">€</option>
-          </select>
-        </div>
-
-        <button type="submit">Ajouter</button>
-      </form>
-
-      {/* Filtre par type */}
-      <div style={{ marginBottom: '20px' }}>
-        <label>Filtrer par catégorie : </label>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option>Tous</option>
-          <option>Alimentation</option>
-          <option>Vêtements</option>
-          <option>Sport</option>
-          <option>Maison</option>
-        </select>
+          Ajouter
+        </button>
       </div>
 
       {/* Liste des produits */}
-      <h2>Liste des produits</h2>
-      {filteredProducts.length === 0 && <p>Aucun produit</p>}
-      {filteredProducts.map((product) => (
-        <ProductItem
-          key={product.id}
-          product={product}
-          onDelete={handleDeleteProduct}
-        />
-      ))}
-
-      {/* Total */}
-      <h2>Total : {total.toFixed(2)}€</h2>
-      <p style={{ color: total > budget ? 'red' : 'green' }}>
-        {total > budget ? 'Budget dépassé !' : 'Budget OK'}
-      </p>
-
-      {/* Bouton PDF */}
-      <button
-        onClick={() => generatePDF(filteredProducts, total, budget)}
-        style={{ marginTop: '20px', padding: '8px 12px', cursor: 'pointer' }}
-      >
-        Exporter en PDF
-      </button>
+      <div>
+        <h2 className="font-semibold mb-2">Liste des produits</h2>
+        {products.length === 0 ? (
+          <p>Aucun produit ajouté</p>
+        ) : (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="border px-2 py-1">Nom</th>
+                <th className="border px-2 py-1">Prix</th>
+                <th className="border px-2 py-1">Quantité</th>
+                <th className="border px-2 py-1">Catégorie</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.id}>
+                  <td className="border px-2 py-1">{product.name}</td>
+                  <td className="border px-2 py-1">{product.price}</td>
+                  <td className="border px-2 py-1">{product.quantity}</td>
+                  <td className="border px-2 py-1">{product.category}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
-
-export default Dashboard;
