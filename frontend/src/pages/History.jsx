@@ -7,19 +7,19 @@ export default function History() {
   const [lists, setLists] = useState([]);
   const navigate = useNavigate();
 
-  /* ===================== LOAD LISTS ===================== */
+  // Charger les listes
   useEffect(() => {
     setLists(loadLists());
   }, []);
 
-  /* ===================== SUPPRIMER UNE LISTE ===================== */
+  // Supprimer une liste
   const deleteList = (id) => {
-    const updatedLists = lists.filter(list => list.id !== id);
-    setLists(updatedLists);
-    saveLists(updatedLists);
+    const updated = lists.filter(list => list.id !== id);
+    setLists(updated);
+    saveLists(updated);
   };
 
-  /* ===================== SUPPRIMER TOUT L’HISTORIQUE ===================== */
+  // Supprimer tout l’historique
   const deleteAllLists = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer tout l’historique ?')) {
       setLists([]);
@@ -29,21 +29,20 @@ export default function History() {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h1 className="text-2xl font-bold">Historique des listes</h1>
-
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button
             onClick={() => navigate('/')}
-            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 w-full sm:w-auto"
           >
             Retour au Dashboard
           </button>
-
           {lists.length > 0 && (
             <button
               onClick={deleteAllLists}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full sm:w-auto"
             >
               Supprimer tout l’historique
             </button>
@@ -51,6 +50,7 @@ export default function History() {
         </div>
       </div>
 
+      {/* Listes */}
       {lists.length === 0 ? (
         <p>Aucune liste sauvegardée</p>
       ) : (
@@ -58,54 +58,33 @@ export default function History() {
           {lists.map((list) => (
             <div
               key={list.id}
-              className="border rounded p-4 shadow-sm bg-white"
+              className="border rounded p-4 shadow-sm bg-white flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center"
             >
-              <div className="flex justify-between items-center mb-2">
-                <div>
-                  <h2 className="font-semibold">{list.name}</h2>
-                  <p className="text-sm text-gray-500">
-                    {new Date(list.date).toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() =>
-                      generatePDF(
-                        list.products,
-                        list.totalSpent,
-                        list.budget,
-                        list.name
-                      )
-                    }
-                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                  >
-                    Export PDF
-                  </button>
-
-                  <button
-                    onClick={() => deleteList(list.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              </div>
-
-              <div className="text-sm">
+              {/* Infos Liste */}
+              <div className="flex flex-col gap-1">
+                <h2 className="font-semibold">{list.name}</h2>
+                <p className="text-sm text-gray-500">{new Date(list.date).toLocaleString()}</p>
                 <p>Budget : {list.budget.toFixed(2)} €</p>
                 <p>Total dépensé : {list.totalSpent.toFixed(2)} €</p>
-                <p
-                  className={`font-semibold ${
-                    list.totalSpent > list.budget
-                      ? 'text-red-600'
-                      : 'text-green-600'
-                  }`}
-                >
-                  {list.totalSpent > list.budget
-                    ? 'Budget dépassé'
-                    : 'Budget respecté'}
+                <p className={`font-semibold ${list.totalSpent > list.budget ? 'text-red-600' : 'text-green-600'}`}>
+                  {list.totalSpent > list.budget ? 'Budget dépassé' : 'Budget respecté'}
                 </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
+                <button
+                  onClick={() => generatePDF(list.products, list.totalSpent, list.budget, list.name)}
+                  className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 w-full sm:w-auto"
+                >
+                  Export PDF
+                </button>
+                <button
+                  onClick={() => deleteList(list.id)}
+                  className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 w-full sm:w-auto"
+                >
+                  Supprimer
+                </button>
               </div>
             </div>
           ))}
